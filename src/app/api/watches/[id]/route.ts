@@ -27,17 +27,26 @@ export async function DELETE(
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const id = params.id;
-    const data = await req.json();
+    const { id } = params;
+    const body = await req.json();
 
-    const updated = await prisma.watch.update({
+    const updatedWatch = await prisma.watch.update({
       where: { id },
-      data,
+      data: {
+        name: body.name,
+        brand: body.brand,
+        price: body.price,
+        description: body.description,
+        imageUrl: body.imageUrl,
+      },
     });
 
-    return new Response(JSON.stringify(updated), { status: 200 });
+    return new Response(JSON.stringify(updatedWatch), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
-    console.error(error);
-    return new Response('Update failed', { status: 500 });
+    console.error('[PUT ERROR]', error);
+    return new Response('Error updating watch', { status: 500 });
   }
 }
