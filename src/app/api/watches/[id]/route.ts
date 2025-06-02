@@ -2,40 +2,43 @@ import { prisma } from '@/lib/prisma';
 import { supabase } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
+// DELETE handler
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = context.params;
   const body = await req.json();
   const imageUrl = body.imageUrl;
 
   try {
     if (imageUrl) {
-      const parts = imageUrl.split('/');
-      const filename = parts[parts.length - 1];
-      await supabase.storage.from('watches').remove([filename]);
+      const filename = imageUrl.split('/').pop();
+      if (filename) {
+        await supabase.storage.from('watches').remove([filename]);
+      }
     }
 
     await prisma.watch.delete({ where: { id } });
+
     return NextResponse.json({ message: 'Reloj eliminado' });
   } catch (error) {
-    console.error('Error al eliminar reloj o imagen:', error);
-    return NextResponse.json({ error: 'No se pudo eliminar el reloj' }, { status: 500 });
+    console.error('Error al eliminar:', error);
+    return NextResponse.json({ error: 'Error al eliminar reloj' }, { status: 500 });
   }
 }
 
-// ESTA ES LA CLAVE: NO TIPO EXTERNO, SOLO DESTRUCTURACIÓN
+// PUT handler
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = context.params;
 
   try {
     const body = await req.json();
 
-    const updatedWatch = await prisma.watch.update({
+    const updated = await prisma.watch.update({
       where: { id },
       data: {
         name: body.name,
@@ -46,9 +49,9 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json(updatedWatch, { status: 200 });
+    return NextResponse.json(updated);
   } catch (error) {
-    console.error('Error al actualizar el reloj:', error);
-    return NextResponse.json({ error: 'No se pudo actualizar el reloj' }, { status: 500 });
+    console.error('Error al actualizar:', error);
+    return NextResponse.json({ error: 'Error al actualizar reloj' }, { status: 500 });
   }
 }
