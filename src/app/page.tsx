@@ -18,7 +18,7 @@ export default function HomePage() {
             El reloj: el accesorio perfecto
           </h1>
           <p className="text-lg md:text-xl max-w-2xl mx-auto">
-            Más que dar la hora, un reloj es estilo, precisión y una declaración de intenciones. Encuentra el que se alinee con tu personalidad.
+            Más que dar la hora, un reloj es estilo, precisión y una declaración de intenciones. ¡Encuentra el que se alinee con tu personalidad!
           </p>
         </div>
       </section>
