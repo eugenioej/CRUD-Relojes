@@ -2,12 +2,12 @@ import { prisma } from '@/lib/prisma';
 import { supabase } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
-// DELETE Handler
+// DELETE handler
 export async function DELETE(
   req: NextRequest,
-  context: { params: Record<string, string> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = context.params;
+  const { id } = params;
   const body = await req.json();
   const imageUrl = body.imageUrl;
 
@@ -26,10 +26,10 @@ export async function DELETE(
   }
 }
 
-// PUT Handler
+// PUT handler (💥 este es el que causaba problemas)
 export async function PUT(
   req: NextRequest,
-  context: { params: Record<string, string> }
+  context: { params: { id: string } }
 ) {
   const { id } = context.params;
 
@@ -47,12 +47,9 @@ export async function PUT(
       },
     });
 
-    return new Response(JSON.stringify(updatedWatch), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json(updatedWatch, { status: 200 });
   } catch (error) {
     console.error('Error updating watch:', error);
-    return new Response('Failed to update watch', { status: 500 });
+    return NextResponse.json({ error: 'Failed to update watch' }, { status: 500 });
   }
 }
