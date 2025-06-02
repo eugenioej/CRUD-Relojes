@@ -4,15 +4,7 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
-
-interface Watch {
-  id: string;
-  name: string;
-  brand?: string;
-  price?: number;
-  description?: string;
-  imageUrl?: string;
-}
+import { Watch } from '@/types/watch';
 
 export default function WatchList({
   watches,
