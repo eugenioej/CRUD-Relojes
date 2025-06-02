@@ -2,9 +2,10 @@ import { prisma } from '@/lib/prisma';
 import { supabase } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
+// DELETE Handler
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Record<string, string> }
 ) {
   const { id } = context.params;
   const body = await req.json();
@@ -18,19 +19,25 @@ export async function DELETE(
     }
 
     await prisma.watch.delete({ where: { id } });
-    return NextResponse.json({ message: 'Reloj eliminado' });
+    return NextResponse.json({ message: 'Watch deleted successfully' });
   } catch (error) {
-    console.error('Error al eliminar reloj o imagen:', error);
-    return NextResponse.json({ error: 'No se pudo eliminar el reloj' }, { status: 500 });
+    console.error('Error deleting watch or image:', error);
+    return NextResponse.json({ error: 'Failed to delete watch' }, { status: 500 });
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+// PUT Handler
+export async function PUT(
+  req: NextRequest,
+  context: { params: Record<string, string> }
+) {
+  const { id } = context.params;
+
   try {
     const body = await req.json();
 
     const updatedWatch = await prisma.watch.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name: body.name,
         brand: body.brand,
@@ -45,7 +52,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('[PUT ERROR]', error);
-    return new Response('Error updating watch', { status: 500 });
+    console.error('Error updating watch:', error);
+    return new Response('Failed to update watch', { status: 500 });
   }
 }
