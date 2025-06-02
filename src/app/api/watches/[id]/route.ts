@@ -1,49 +1,45 @@
+// src/app/api/watches/[id]/route.ts
+
 import { prisma } from '@/lib/prisma';
 import { supabase } from '@/lib/supabase';
-import { NextResponse } from 'next/server';
 
 // DELETE handler
 export async function DELETE(
-  req: Request,
+  request: Request,
   { params }: { params: { id: string } }
-) {
+): Promise<Response> {
   const { id } = params;
-  let imageUrl = '';
   try {
-    // Leer body (JSON)
-    const body = await req.json();
-    imageUrl = body.imageUrl;
+    const body = await request.json();
+    const imageUrl = body.imageUrl as string | undefined;
 
-    // Si hay URL de imagen, extraemos filename y lo borramos de Supabase Storage
     if (imageUrl) {
-      const filename = imageUrl.split('/').pop();
-      if (filename) {
-        await supabase.storage.from('watches').remove([filename]);
-      }
+      const filename = imageUrl.split('/').pop()!;
+      await supabase.storage.from('watches').remove([filename]);
     }
 
-    // Borrar el registro en la base de datos con Prisma
     await prisma.watch.delete({ where: { id } });
-
-    return NextResponse.json({ message: 'Watch deleted successfully' });
+    return new Response(
+      JSON.stringify({ message: 'Watch deleted successfully' }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('Error deleting watch or image:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete watch' },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: 'Failed to delete watch' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
 
 // PUT handler
 export async function PUT(
-  req: Request,
+  request: Request,
   { params }: { params: { id: string } }
-) {
+): Promise<Response> {
   const { id } = params;
   try {
-    // Leer body (JSON) con datos a actualizar
-    const body = await req.json();
+    const body = await request.json();
 
     const updatedWatch = await prisma.watch.update({
       where: { id },
@@ -56,12 +52,15 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json(updatedWatch, { status: 200 });
+    return new Response(JSON.stringify(updatedWatch), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Error updating watch:', error);
-    return NextResponse.json(
-      { error: 'Failed to update watch' },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: 'Failed to update watch' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
