@@ -2,20 +2,33 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { Watch } from '@/types/watch';
 
-export default function WatchForm({ onAdded }: { onAdded: (newWatch: any) => void }) {
-  const [form, setForm] = useState({
+interface Props {
+  onAdded: (newWatch: Watch) => void;
+}
+
+export default function WatchForm({ onAdded }: Props) {
+  const [form, setForm] = useState<{
+    name: string;
+    brand: string;
+    price: string;
+    description: string;
+    image: File | null;
+  }>({
     name: '',
     brand: '',
     price: '',
     description: '',
-    image: null as File | null,
+    image: null,
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value, files } = e.target as HTMLInputElement;
 
     if (name === 'image' && files) {
@@ -47,29 +60,76 @@ export default function WatchForm({ onAdded }: { onAdded: (newWatch: any) => voi
       const res = await fetch('/api/watches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, price: Number(form.price), imageUrl }),
+        body: JSON.stringify({
+          name: form.name,
+          brand: form.brand,
+          price: Number(form.price),
+          description: form.description,
+          imageUrl,
+        }),
       });
 
       if (!res.ok) throw new Error('Error al guardar');
 
-      const newWatch = await res.json();
+      const newWatch: Watch = await res.json();
       setForm({ name: '', brand: '', price: '', description: '', image: null });
       onAdded(newWatch);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 border p-6 rounded-lg shadow bg-white">
-      <input name="name" placeholder="Nombre" value={form.name} onChange={handleChange} required className="w-full border p-2 rounded" />
-      <input name="brand" placeholder="Marca" value={form.brand} onChange={handleChange} className="w-full border p-2 rounded" />
-      <input name="price" type="number" placeholder="Precio" value={form.price} onChange={handleChange} required className="w-full border p-2 rounded" />
-      <textarea name="description" placeholder="Descripción" value={form.description} onChange={handleChange} className="w-full border p-2 rounded" />
-      <input type="file" name="image" accept="image/*" onChange={handleChange} className="w-full border p-2 rounded cursor-pointer" />
-      <button type="submit" disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 border p-6 rounded-lg shadow bg-white"
+    >
+      <input
+        name="name"
+        placeholder="Nombre"
+        value={form.name}
+        onChange={handleChange}
+        required
+        className="w-full border p-2 rounded"
+      />
+      <input
+        name="brand"
+        placeholder="Marca"
+        value={form.brand}
+        onChange={handleChange}
+        className="w-full border p-2 rounded"
+      />
+      <input
+        name="price"
+        type="number"
+        placeholder="Precio"
+        value={form.price}
+        onChange={handleChange}
+        required
+        className="w-full border p-2 rounded"
+      />
+      <textarea
+        name="description"
+        placeholder="Descripción"
+        value={form.description}
+        onChange={handleChange}
+        className="w-full border p-2 rounded"
+      />
+      <input
+        type="file"
+        name="image"
+        accept="image/*"
+        onChange={handleChange}
+        className="w-full border p-2 rounded cursor-pointer"
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
+      >
         {loading ? 'Guardando...' : 'Guardar reloj'}
       </button>
       {error && <p className="text-red-500 text-sm">{error}</p>}
