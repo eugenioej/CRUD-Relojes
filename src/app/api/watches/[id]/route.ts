@@ -27,11 +27,10 @@ export async function DELETE(
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { id } = params;
     const body = await req.json();
 
     const updatedWatch = await prisma.watch.update({
-      where: { id },
+      where: { id: params.id },
       data: {
         name: body.name,
         brand: body.brand,
