@@ -5,14 +5,23 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 
+interface Watch {
+  id: string;
+  name: string;
+  brand?: string;
+  price?: number;
+  description?: string;
+  imageUrl?: string;
+}
+
 export default function WatchList({
   watches,
   setWatches,
 }: {
-  watches: any[];
-  setWatches: React.Dispatch<React.SetStateAction<any[]>>;
+  watches: Watch[];
+  setWatches: React.Dispatch<React.SetStateAction<Watch[]>>;
 }) {
-  const [editingWatch, setEditingWatch] = useState<any | null>(null);
+  const [editingWatch, setEditingWatch] = useState<Watch | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [formState, setFormState] = useState({
     name: '',
@@ -20,11 +29,6 @@ export default function WatchList({
     price: '',
     description: '',
     imageUrl: '',
-  });
-
-  const [filter, setFilter] = useState({
-    maxPrice: '',
-    brand: '',
   });
 
   const fetchWatches = async () => {
@@ -40,7 +44,7 @@ export default function WatchList({
     });
   };
 
-  const deleteWatch = async (watch: any) => {
+  const deleteWatch = async (watch: Watch) => {
     const confirmDelete = await confirmDeleteDialog(watch.name);
     if (!confirmDelete) return;
 
@@ -58,12 +62,12 @@ export default function WatchList({
     }
   };
 
-  const handleEditClick = (watch: any) => {
+  const handleEditClick = (watch: Watch) => {
     setEditingWatch(watch);
     setFormState({
       name: watch.name || '',
       brand: watch.brand || '',
-      price: watch.price ? String(watch.price) : '',
+      price: watch.price?.toString() || '',
       description: watch.description || '',
       imageUrl: watch.imageUrl || '',
     });
@@ -117,90 +121,45 @@ export default function WatchList({
   return (
     <>
       <Toaster />
-
-      {/* Filtros */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        {/* Precio */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Precio máximo</label>
-          <input
-            type="number"
-            name="maxPrice"
-            placeholder="Ej. 1000"
-            className="border px-2 py-1 rounded w-40"
-            value={filter.maxPrice}
-            onChange={(e) => setFilter((prev) => ({ ...prev, maxPrice: e.target.value }))}
-          />
-        </div>
-
-        {/* Marca */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
-          <div className="flex gap-2 flex-wrap">
-            {Array.from(new Set(watches.map((w) => w.brand).filter(Boolean))).map((brand) => (
-              <button
-                key={brand}
-                onClick={() =>
-                  setFilter((prev) => ({
-                    ...prev,
-                    brand: prev.brand === brand ? '' : brand,
-                  }))
-                }
-                className={`px-3 py-1 rounded-full border text-sm ${
-                  filter.brand === brand
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-                }`}
-              >
-                {brand}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-10">
-        {watches
-          .filter((w) => (filter.maxPrice ? w.price <= parseFloat(filter.maxPrice) : true))
-          .filter((w) => (filter.brand ? w.brand === filter.brand : true))
-          .map((watch) => (
-            <div
-              key={watch.id}
-              className="border border-gray-200 rounded-lg shadow hover:shadow-md transition overflow-hidden bg-white flex flex-col cursor-pointer"
-            >
-              <img
-                src={watch.imageUrl}
-                alt={watch.name}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">{watch.name}</h3>
-                  {watch.brand && (
-                    <p className="text-sm text-gray-500 mb-1">{watch.brand}</p>
-                  )}
-                  <p className="text-blue-600 font-bold">${watch.price}</p>
-                  {watch.description && (
-                    <p className="text-sm mt-2 text-gray-700">{watch.description}</p>
-                  )}
-                </div>
-                <div className="flex gap-4 mt-4">
-                  <button
-                    onClick={() => handleEditClick(watch)}
-                    className="text-sm text-blue-500 hover:underline self-start cursor-pointer"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => deleteWatch(watch)}
-                    className="text-sm text-red-500 hover:underline self-start cursor-pointer"
-                  >
-                    Eliminar
-                  </button>
-                </div>
+        {watches.map((watch) => (
+          <div
+            key={watch.id}
+            className="border border-gray-200 rounded-lg shadow hover:shadow-md transition overflow-hidden bg-white flex flex-col cursor-pointer"
+          >
+            <img
+              src={watch.imageUrl}
+              alt={watch.name}
+              className="w-full h-48 object-cover"
+            />
+            <div className="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">{watch.name}</h3>
+                {watch.brand && (
+                  <p className="text-sm text-gray-500 mb-1">{watch.brand}</p>
+                )}
+                <p className="text-blue-600 font-bold">${watch.price}</p>
+                {watch.description && (
+                  <p className="text-sm mt-2 text-gray-700">{watch.description}</p>
+                )}
+              </div>
+              <div className="flex gap-4 mt-4">
+                <button
+                  onClick={() => handleEditClick(watch)}
+                  className="text-sm text-blue-500 hover:underline self-start cursor-pointer"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => deleteWatch(watch)}
+                  className="text-sm text-red-500 hover:underline self-start cursor-pointer"
+                >
+                  Eliminar
+                </button>
               </div>
             </div>
-          ))}
+          </div>
+        ))}
       </div>
 
       {showModal && editingWatch && (
