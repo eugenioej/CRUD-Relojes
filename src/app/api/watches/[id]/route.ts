@@ -25,35 +25,19 @@ export async function DELETE(
   }
 }
 
-export async function PUT(
-  req: NextRequest,
-  context: { params: { id: string } }
-) {
-  const { id } = context.params;
-
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const body = await req.json();
-    const { name, brand, price, description, imageUrl } = body;
+    const id = params.id;
+    const data = await req.json();
 
-    const currentWatch = await prisma.watch.findUnique({ where: { id } });
-    if (!currentWatch) {
-      return NextResponse.json({ error: 'Reloj no encontrado' }, { status: 404 });
-    }
-
-    const updatedWatch = await prisma.watch.update({
+    const updated = await prisma.watch.update({
       where: { id },
-      data: {
-        name: name ?? currentWatch.name,
-        brand: brand ?? currentWatch.brand,
-        price: typeof price === 'number' ? price : currentWatch.price,
-        description: description ?? currentWatch.description,
-        imageUrl: imageUrl ?? currentWatch.imageUrl,
-      },
+      data,
     });
 
-    return NextResponse.json({ message: 'Reloj actualizado', watch: updatedWatch });
+    return new Response(JSON.stringify(updated), { status: 200 });
   } catch (error) {
-    console.error('Error al actualizar reloj:', error);
-    return NextResponse.json({ error: 'No se pudo actualizar el reloj' }, { status: 500 });
+    console.error(error);
+    return new Response('Update failed', { status: 500 });
   }
 }
